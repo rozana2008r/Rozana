@@ -1,0 +1,91 @@
+import collections
+import heapq
+
+# 1. Торды құру (0 - бос ұяшық, 1 - кедергі)
+grid = [
+    [0, 0, 0, 1, 0, 0],
+    [0, 1, 0, 1, 0, 0],
+    [0, 1, 0, 0, 0, 1],
+    [0, 1, 1, 1, 0, 0],
+    [0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]
+
+start = (0, 0)
+goal = (5, 5)
+
+def get_neighbors(pos, current_grid):
+    r, c = pos
+    neighbors = []
+    # Қозғалыс бағыттары: Жоғары, Төмен, Солға, Оңға
+    for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        nr, nc = r + dr, c + dc
+        if 0 <= nr < 6 and 0 <= nc < 6 and current_grid[nr][nc] == 0:
+            neighbors.append((nr, nc))
+    return neighbors
+
+# 2. BFS алгоритмін іске асыру
+def bfs(start_node, goal_node, current_grid):
+    queue = collections.deque([[start_node]])
+    visited = set([start_node])
+    expanded_count = 0
+    
+    while queue:
+        path = queue.popleft()
+        node = path[-1]
+        if node == goal_node:
+            return path, len(path) - 1, expanded_count
+        expanded_count += 1
+        for neighbor in get_neighbors(node, current_grid):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(path + [neighbor])
+    return None, float('inf'), expanded_count
+
+# 3. A* алгоритмін іске асыру (Манхэттен эвристикасы)
+def manhattan(p1, p2):
+    return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
+
+def a_star(start_node, goal_node, current_grid):
+    # Элемент форматы: (f_score, g_score, path)
+    queue = [(manhattan(start_node, goal_node), 0, [start_node])]
+    visited = {}
+    expanded_count = 0
+    
+    while queue:
+        f, g, path = heapq.heappop(queue)
+        node = path[-1]
+        if node == goal_node:
+            return path, g, expanded_count
+        if node in visited and visited[node] <= g:
+            continue
+        visited[node] = g
+        expanded_count += 1
+        for neighbor in get_neighbors(node, current_grid):
+            new_g = g + 1
+            if neighbor not in visited or new_g < visited[neighbor]:
+                new_f = new_g + manhattan(neighbor, goal_node)
+                heapq.heappush(queue, (new_f, new_g, path + [neighbor]))
+    return None, float('inf'), expanded_count
+
+# Негізгі торда іске қосу
+bfs_path, bfs_cost, bfs_exp = bfs(start, goal, grid)
+astar_path, astar_cost, astar_exp = a_star(start, goal, grid)
+
+print("--- Бастапқы тор нәтижесі ---")
+print(f"BFS: Жол құны = {bfs_cost}, Кеңейтілген түйіндер = {bfs_exp}")
+print(f"A*:  Жол құны = {astar_cost}, Кеңейтілген түйіндер = {astar_exp}\n")
+
+# D2. Бақыланатын эксперимент (Екі ұяшықты кедергіге өзгерту)
+# (4,0) және (4,1) бос ұяшықтарын кедергіге (1) айналдырамыз
+grid_mod = [row[:] for row in grid]
+grid_mod[4][0] = 1 
+grid_mod[4][1] = 1 
+
+bfs_path_m, bfs_cost_m, bfs_exp_m = bfs(start, goal, grid_mod)
+astar_path_m, astar_cost_m, astar_exp_m = a_star(start, goal, grid_mod)
+
+print("--- Өзгертілген тор нәтижесі (Эксперимент) ---")
+print(f"BFS (Мод): Жол құны = {bfs_cost_m}, Кеңейтілген түйіндер = {bfs_exp_m}")
+print(f"A* (Мод):  Жол құны = {astar_cost_m}, Кеңейтілген түйіндер = {astar_exp_m}")
+
