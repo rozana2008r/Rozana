@@ -1,0 +1,39 @@
+#1
+tree = {
+    'A': ['B', 'C'], 'B': ['D', 'E'], 'C': ['F', 'G'],
+    'D': [3, 12], 'E': [8, 2], 'F': [4, 6], 'G': [14, 5]
+}
+
+def minimax(node, is_max):
+    if isinstance(node, int): # Егер сан болса (жапырақ)
+        return node
+    
+    if is_max:
+        return max(minimax(child, False) for child in tree[node])
+    else:
+        return min(minimax(child, True) for child in tree[node])
+
+print("А түйінінің шешімі:", minimax('A', True))
+
+#2
+def alphabeta(node, is_max, alpha, beta):
+    if isinstance(node, int):
+        return node
+    
+    if is_max:
+        val = -99
+        for child in tree[node]:
+            val = max(val, alphabeta(child, False, alpha, beta))
+            alpha = max(alpha, val) # MAX альфаны жаңартады
+            if beta <= alpha: break # BETA-CUTOFF (қию)
+        return val
+    else:
+        val = 99
+        for child in tree[node]:
+            val = min(val, alphabeta(child, True, alpha, beta))
+            beta = min(beta, val)   # MIN бетаны жаңартады
+            if beta <= alpha: break # ALPHA-CUTOFF (қию)
+        return val
+
+print("Alpha-Beta шешімі:", alphabeta('A', True, -99, 99))
+
