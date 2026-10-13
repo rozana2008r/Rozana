@@ -1,0 +1,55 @@
+# Күйлер, әрекеттер және параметрлер
+states = ["A", "B", "C", "D", "E", "S", "F", "H", "I"]
+actions = ["UP", "DOWN", "LEFT", "RIGHT"]
+gamma, theta = 0.9, 0.0001
+
+# Тор құрылымы
+grid = {
+    "A": {"UP": "A", "DOWN": "D", "LEFT": "A", "RIGHT": "B"},
+    "B": {"UP": "B", "DOWN": "B", "LEFT": "A", "RIGHT": "C"},
+    "C": {"UP": "C", "DOWN": "E", "LEFT": "B", "RIGHT": "G"},
+    "D": {"UP": "A", "DOWN": "S", "LEFT": "D", "RIGHT": "D"},
+    "E": {"UP": "C", "DOWN": "H", "LEFT": "E", "RIGHT": "X"},
+    "S": {"UP": "D", "DOWN": "S", "LEFT": "S", "RIGHT": "F"},
+    "F": {"UP": "F", "DOWN": "F", "LEFT": "S", "RIGHT": "H"},
+    "H": {"UP": "E", "DOWN": "H", "LEFT": "F", "RIGHT": "I"},
+    "I": {"UP": "X", "DOWN": "I", "LEFT": "H", "RIGHT": "I"},
+}
+
+# Сол және оң жаққа ауытқу бағыттары
+dirs = ["UP", "RIGHT", "DOWN", "LEFT"]
+
+
+def get_q(s, a, V):
+  """Q(s, a) мәнін есептеу функциясы"""
+  idx = dirs.index(a)
+  # Негізгі (0.8), Сол (0.1), Оң (0.1)
+  moves = [(0.8, a), (0.1, dirs[(idx - 1) % 4]), (0.1, dirs[(idx + 1) % 4])]
+  q = 0
+  for prob, d in moves:
+    next_s = grid[s][d]
+    reward = 10.0 if next_s == "G" else (-10.0 if next_s == "X" else -0.1)
+    next_val = 0.0 if next_s in ["G", "X"] else V.get(next_s, 0.0)
+    q += prob * (reward + gamma * next_val)
+  return q
+
+
+# Мәндер итерациясы
+V = {s: 0.0 for s in states}
+while True:
+  new_V = {s: max(get_q(s, a, V) for a in actions) for s in states}
+  if max(abs(new_V[s] - V[s]) for s in states) < theta:
+    break
+  V = new_V
+
+# Оңтайлы саясатты анықтау
+policy = {s: max(actions, key=lambda a: get_q(s, a, V)) for s in states}
+
+# Нәтижелерді шығару
+print("Соңғы күй мәндері (V):")
+for s, val in V.items():
+  print(f"{s}: {val:.2f}")
+
+print("\nОңтайлы саясат (pi):")
+for s, act in policy.items():
+  print(f"pi({s}) = {act}")
