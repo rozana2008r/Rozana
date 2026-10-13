@@ -1,0 +1,38 @@
+# 1. Ойын ағашы (Game Tree)
+tree = {
+    'A': ['B', 'C'],
+    'B': ['D', 'E'], 'C': ['F', 'G'],
+    'D': [3, 12], 'E': [8, 2], 'F': [4, 6], 'G': [14, 5]
+}
+
+# 2. Minimax алгоритмі (барлық түйінді тексереді)
+def minimax(node, is_max):
+    if isinstance(node, int): # Егер сан болса (жапырақ)
+        return node
+    if is_max:
+        return max(minimax(child, False) for child in tree[node])
+    else:
+        return min(minimax(child, True) for child in tree[node])
+
+# 3. Alpha-Beta алгоритмі (артық бұтақты қияды)
+def alphabeta(node, is_max, alpha, beta):
+    if isinstance(node, int):
+        return node
+    if is_max:
+        val = -99
+        for child in tree[node]:
+            val = max(val, alphabeta(child, False, alpha, beta))
+            alpha = max(alpha, val)
+            if beta <= alpha: break # Beta-cutoff (қию)
+        return val
+    else:
+        val = 99
+        for child in tree[node]:
+            val = min(val, alphabeta(child, True, alpha, beta))
+            beta = min(beta, val)
+            if beta <= alpha: break # Alpha-cutoff (қию)
+        return val
+
+# Тексеру
+print("Minimax A:", minimax('A', True))
+print("Alpha-Beta A:", alphabeta('A', True, -99, 99))
