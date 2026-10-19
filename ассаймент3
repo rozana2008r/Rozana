@@ -1,0 +1,22 @@
+def bayes(prior_h, p_e_if_h, p_e_if_s):
+    score_h = prior_h * p_e_if_h
+    score_s = (1.0 - prior_h) * p_e_if_s
+    return score_h / (score_h + score_s)
+
+# Сезімталдық талдауы (ALARM кезінде)
+priors = [0.05, 0.20, 0.50, 0.80]
+print("--- Сезімталдық талдауы (ALARM) ---")
+for p in priors:
+    post = bayes(p, 0.90, 0.10)
+    print(f"Бастапқы P(H) = {p:.2f} -> Соңғы P(H) = {post:.4f}")
+
+# HMM Сүзгілеуі
+obs = ["ALARM", "NORMAL", "ALARM", "ALARM"]
+emiss = {"ALARM": (0.90, 0.10), "NORMAL": (0.10, 0.90)}
+p_h = 0.20
+
+print("\n--- HMM Нәтижесі ---")
+for t, r in enumerate(obs, start=1):
+    pred_h = p_h if t == 1 else (0.80 * p_h + 0.20 * (1.0 - p_h))
+    p_h = bayes(pred_h, emiss[r][0], emiss[r][1])
+    print(f"t{t} ({r}): Болжам P(H)={pred_h:.4f} | Жаңартылған P(H)={p_h:.4f}")
