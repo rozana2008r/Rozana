@@ -1,0 +1,19 @@
+def bayes(prior, p_obs_if_o, p_obs_if_c):
+    score_o = prior * p_obs_if_o
+    score_c = (1.0 - prior) * p_obs_if_c
+    return score_o / (score_o + score_c)
+
+# А Бөлімі
+print("Single BLOCKED:", round(bayes(0.30, 0.80, 0.20), 4))
+print("Single CLEAR:  ", round(bayes(0.30, 0.20, 0.80), 4))
+
+# В Бөлімі (HMM)
+obs = ["BLOCKED", "CLEAR", "BLOCKED", "BLOCKED"]
+emiss = {"BLOCKED": (0.80, 0.20), "CLEAR": (0.20, 0.80)}
+p_o = 0.30
+
+print("\nt  reading  pred_O   upd_O    upd_C")
+for t, r in enumerate(obs, start=1):
+    pred_o = p_o if t == 1 else (0.70 * p_o + 0.20 * (1.0 - p_o))
+    p_o = bayes(pred_o, emiss[r][0], emiss[r][1])
+    print(f"{t}  {r:7s}  {pred_o:.4f}   {p_o:.4f}   {1.0-p_o:.4f}")
