@@ -1,0 +1,47 @@
+# 1. Күйлер мен бастапқы параметрлер
+states = ["A", "B", "C"]
+
+# Ауысу матрицасы (Transition Matrix)
+T = [
+    [0.7, 0.3, 0.0],  # A-дан A, B, C-ға өту
+    [0.2, 0.6, 0.2],  # B-дан A, B, C-ға өту
+    [0.0, 0.3, 0.7]   # C-дан A, B, C-ға өту
+]
+
+# Бақылау матрицасы (Emission Matrix)
+emission = {
+    "RED":  [0.8, 0.5, 0.2],
+    "BLUE": [0.2, 0.5, 0.8]
+}
+
+# Бастапқы ықтималдық
+belief = [0.5, 0.3, 0.2]
+
+# Датчик көрсеткіштері
+readings = ["RED", "BLUE", "BLUE", "RED"]
+
+# 2. Функциялар
+def predict(b, T):
+    """Қозғалысты болжау кезеңі"""
+    return [sum(b[i] * T[i][j] for i in range(3)) for j in range(3)]
+
+def update(pred, likelihood):
+    """Сүзгілеу және нормалау кезеңі"""
+    weights = [pred[i] * likelihood[i] for i in range(3)]
+    total = sum(weights)
+    return [w / total for w in weights]
+
+# 3. Модельді іске қосу
+print("HMM Есептеу нәтижелері:\n")
+
+for step, reading in enumerate(readings, start=1):
+    # Болжау
+    predicted = predict(belief, T)
+    # Жаңарту (Сүзгілеу)
+    belief = update(predicted, emission[reading])
+    
+    # Нәтижені дөңгелектеп шығару
+    result = [round(x, 4) for x in belief]
+    most_likely = states[belief.index(max(belief))]
+    
+    print(f"{step}-қадам | Сигнал: {reading:4s} | Үлестірім: {result} | Ең ықтимал: {most_likely}")
