@@ -1,0 +1,59 @@
+import numpy as np
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+
+# 2 Тапсырма: Күтілетін пайдалылық пен шығын
+print("--- 2 Тапсырма нәтижесі ---")
+p_high = 10 / 11  # 1-тапсырмадан алынған дөңгелектелмеген ықтималдық
+p_low = 1 - p_high
+
+actions = {
+    'Extra': ([p_high, p_low], [0, -60]),
+    'Usual': ([p_high, p_low], [-30, 0])
+}
+
+def EU(probs, utilities):
+    return sum(p * u for p, u in zip(probs, utilities))
+
+scores = {name: EU(*values) for name, values in actions.items()}
+print("Әрекеттердің пайдалылығы (EU):", scores)
+print("Ең тиімді әрекет:", max(scores, key=scores.get))
+print()
+
+# 3A Тапсырма: Сызықтық регрессия
+print("--- 3A Тапсырма нәтижесі ---")
+X = np.array([100, 150, 200, 250, 300]).reshape(-1, 1)
+y = np.array([29, 41, 53, 66, 78])
+
+lin_model = LinearRegression()
+lin_model.fit(X, y)
+
+print("w (көлбеулік):", lin_model.coef_[0])
+print("b (бос мүше):", lin_model.intercept_)
+print("x=180 үшін болжам:", lin_model.predict([[180]])[0])
+print()
+
+# 3B Тапсырма: Логистикалық регрессия
+
+print("--- 3B Тапсырма нәтижесі ---")
+X_train = np.array([
+    [1, 1], [1, 1], [1, 1],
+    [1, 0], [1, 0], [0, 1],
+    [1, 1], [1, 0], [0, 0],
+    [0, 0], [0, 0], [0, 0]
+])
+y_train = np.array([1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
+X_test = np.array([[1, 1], [1, 0]])
+
+log_model = make_pipeline(
+    StandardScaler(),
+    LogisticRegression()
+)
+log_model.fit(X_train, y_train)
+
+p_probs = log_model.predict_proba(X_test)[:, 1]
+alerts = (p_probs >= 0.50).astype(int)
+
+print("High класының ықтималдықтары (p):", p_probs)
+print("Болжамдар (alerts):", alerts)
